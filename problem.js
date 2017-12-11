@@ -37,6 +37,8 @@ const data3 = [
   'Jeremy;START',
   'Jeremy;START',
   'Leah;15',
+  'Leah;START',
+  'Leah;13',
   'Jeremy;8,14,9',
 ]
 
@@ -60,7 +62,7 @@ const detectFraud = (data) => {
       } else {
         if (Math.max(...ids) > currentHighest) currentHighest = Math.max(...ids);
         checkIndex[jobs[i][0]] = ids.length;
-        violation = checkValidBatch(data, highestIdToDate, ids, jobs[i][0], i);
+        violation = checkValidBatch(highestIdToDate, ids, jobs[i][0], startIndices[jobs[i][0]], i);
       }
       if (violation) violations.push(violation);
     } else {
@@ -77,25 +79,22 @@ const detectFraud = (data) => {
 }
 
 const checkValidJob = (data, highestIdToDate, id, name, startIndices, checkIndex) => {
-  let startIdx = checkIndex[name] ? startIndices[checkIndex[name]] : 0;
-  // console.log('checkValidJob', id, name);
-  const indexOfStart = data.indexOf(`${name};START`, startIdx);
-  // console.log('indexOfStart', indexOfStart, startIdx);
+  let startIdx = checkIndex[name] ? startIndices[checkIndex[name]] : startIndices[0];
+
   if (checkIndex[name]) {
     checkIndex[name] += 1;
   } else {
     checkIndex[name] = 1;
   }
-  if (highestIdToDate[indexOfStart] > id) return `${indexOfStart + 1};${name};SHORTENED_JOB`;
+
+  if (highestIdToDate[startIdx] > id) return `${startIdx + 1};${name};SHORTENED_JOB`;
   return null;
 }
 
-const checkValidBatch = (data, highestIdToDate, ids, name, idx) => {
-  for (let j = 0; j < idx; j++) {
-    if (data[j] === `${name};START`) {
-      for (let i = 0, len = ids.length; i < len; i++) {
-        if (highestIdToDate[j] > ids[i]) return `${idx + 1};${name};SUSPICIOUS_BATCH`;
-      }
+const checkValidBatch = (highestIdToDate, ids, name, startIndices, idx) => {
+  for (let j = 0, len = startIndices.length; j < len; j++) {
+    for (let i = 0, len = ids.length; i < len; i++) {
+      if (highestIdToDate[startIndices[j]] > ids[i]) return `${idx + 1};${name};SUSPICIOUS_BATCH`;
     }
   }
   return null;
